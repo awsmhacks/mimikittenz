@@ -462,7 +462,7 @@ foreach ($reference in $ReferencedAssemblies)
     $resolvedAssembly = $resolveAssemblyMethod.Invoke($addTypeCommandInstance, $reference)
     $compilerParameters.ReferencedAssemblies.Add($resolvedAssembly)
 }
-$compilerParameters.IncludeDebugInformation = $true
+$compilerParameters.IncludeDebugInformation = $false
 
 Add-Type -TypeDefinition $Source2 -Language CSharp -CompilerParameters $compilerParameters
 
